@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultura Info - Protótipo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Fonte Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Esconde todas as telas por padrão */
+        .screen {
+            display: none;
+        }
+        /* Mostra a tela ativa */
+        .screen.active {
+            display: block;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="max-w-md mx-auto bg-white h-screen shadow-lg flex flex-col" style="height: 100vh;">
+        <!-- Conteúdo da Tela (Muda dinamicamente) -->
+        <main class="flex-1 overflow-y-auto pb-20">
+
+            <!-- Tela: Login/Cadastro (Conta - Não Logado) -->
+            <div id="screen-login" class="screen p-6">
+                <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center">Cultura Info</h1>
+                <div id="login-form">
+                    <h2 class="text-2xl font-semibold mb-4">Entrar</h2>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="mb-4">
+                            <label for="login-phone" class="block text-sm font-medium text-gray-700 mb-1">Número de Celular</label>
+                            <input type="tel" id="login-phone" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="XX XXXXXXXX ou XX XXXXXXXXX" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="login-pass" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                            <input type="password" id="login-pass" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Sua senha" required>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Entrar</button>
+                    </form>
+                    <button onclick="toggleRegister()" class="w-full text-center text-blue-600 mt-4">Não tem conta? Cadastre-se</button>
+                </div>
+                
+                <div id="register-form" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-4">Cadastro</h2>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="mb-4">
+                            <label for="reg-name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                            <input type="text" id="reg-name" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Seu nome" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-phone" class="block text-sm font-medium text-gray-700 mb-1">Número de Celular <span class="text-red-500">*</span></label>
+                            <input type="tel" id="reg-phone" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="XX XXXXXXXX ou XX XXXXXXXXX" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-pass" class="block text-sm font-medium text-gray-700 mb-1">Senha <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-pass" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Crie uma senha" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-confirm-pass" class="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha <span class="text-red-500">*</span></label>
+                            <input type="password" id="reg-confirm-pass" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Confirme sua senha" required>
+                        </div>
+                        <p id="register-error" class="text-red-600 text-sm mb-2 hidden"></p>
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Cadastrar</button>
+                    </form>
+                    <button onclick="toggleRegister()" class="w-full text-center text-blue-600 mt-4">Já tem conta? Entrar</button>
+                </div>
+            </div>
+
+            <!-- Tela: Eventos (Home) -->
+            <div id="screen-home" class="screen">
+                <!-- Header Fixo -->
+                <header class="sticky top-0 bg-white shadow z-10 p-4">
+                    <h1 class="text-2xl font-bold text-blue-600">Eventos Gratuitos</h1>
+                    <p class="text-gray-600">Encontre cultura e lazer perto de você</p>
+                    <!-- Localização Mock (Pin) e Botão Perto de Mim -->
+                    <div class="mt-2 flex items-center gap-2">
+                        <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-sm font-medium">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            <span id="mock-location-label">Belo Horizonte</span>
+                        </div>
+                        <button onclick="toggleFilter('nearby')" id="filter-nearby" class="filter-btn inline-flex items-center gap-1 rounded-full bg-gray-200 text-gray-700 px-3 py-1 text-sm font-medium">
+                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                            Perto de mim
+                        </button>
+                    </div>
+                    <!-- Filtros -->
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <button onclick="toggleFilter('Música')" id="filter-Música" class="filter-btn w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                            Música
+                        </button>
+                        <button onclick="toggleFilter('Teatro')" id="filter-Teatro" class="filter-btn w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                            Teatro
+                        </button>
+                        <button onclick="toggleFilter('Infantil')" id="filter-Infantil" class="filter-btn w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                            Infantil
+                        </button>
+                        <button onclick="toggleFilter('Oficina')" id="filter-Oficina" class="filter-btn w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                            Oficinas
+                        </button>
+                        <button onclick="toggleFilter('acessivel')" id="filter-acessivel" class="filter-btn w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                            Acessível
+                        </button>
+                    </div>
+                </header>
+                <!-- Lista de Eventos -->
+                <div id="event-list" class="p-4 space-y-4">
+                    <!-- Eventos serão injetados aqui -->
+                </div>
+            </div>
+
+            <!-- Tela: Detalhes do Evento -->
+            <div id="screen-details" class="screen">
+                <div class="h-48 bg-gray-200">
+                    <img id="detail-image" src="" alt="Imagem do Evento" class="w-full h-full object-cover">
+                </div>
+                <div class="p-4 relative">
+                    <!-- Botão Salvar -->
+                    <button onclick="toggleSaveEvent()" id="save-button" class="absolute top-0 right-4 -mt-7 bg-white p-3 rounded-full shadow-lg text-gray-600">
+                        <i data-lucide="bookmark"></i>
+                    </button>
+
+                    <h1 id="detail-name" class="text-2xl font-bold mb-2"></h1>
+                    <p id="detail-date" class="text-blue-600 font-semibold mb-2"></p>
+                    <div id="detail-tags" class="flex flex-wrap gap-2 mb-4">
+                        <!-- Tags aqui -->
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4">
+                        <h2 class="text-lg font-semibold mb-2">Descrição</h2>
+                        <p id="detail-description" class="text-gray-700 mb-4"></p>
+                        
+                        <h2 class="text-lg font-semibold mb-2">Localização e Acesso</h2>
+                        <p id="detail-address" class="text-gray-700 mb-2"></p>
+                        <p id="detail-transport" class="text-gray-700 mb-4"></p>
+
+                        <h2 class="text-lg font-semibold mb-2">Outras Informações</h2>
+                        <p id="detail-organizer" class="text-gray-700 text-sm"></p>
+                        <p id="detail-prereqs" class="text-gray-700 text-sm mb-4"></p>
+
+                        <!-- Botão de Notificações (só aparece se evento estiver salvo e usuário logado) -->
+                        <div id="notification-section" class="mb-4 hidden">
+                            <button onclick="toggleNotification()" id="notification-button" class="w-full text-center text-blue-600 p-2 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                                <span id="notification-button-text">Ativar Notificações</span>
+                            </button>
+                        </div>
+
+                        <h2 class="text-lg font-semibold mb-2">Avaliações e Comentários</h2>
+                        <div id="detail-reviews" class="space-y-3 mb-4">
+                            <!-- Prévia dos comentários aqui -->
+                        </div>
+                        
+                        <button onclick="showCommentsScreen()" class="w-full text-center text-blue-600 p-2 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                            Ver Todos Comentários
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela: Comentários (NOVA TELA) -->
+            <div id="screen-comments" class="screen">
+                <header class="sticky top-0 bg-white shadow z-10 p-4 flex items-center">
+                    <button onclick="showDetails(state.currentEventId)" class="text-blue-600 p-2 -ml-2 rounded-full hover:bg-gray-100">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </button>
+                    <div class="ml-2">
+                         <h1 class="text-xl font-bold text-blue-600">Comentários</h1>
+                         <p id="comments-screen-title" class="text-sm text-gray-600 truncate"></p>
+                    </div>
+                </header>
+
+                <div class="p-4">
+                    <!-- Formulário para postar -->
+                    <div class="border-b border-gray-200 pb-4 mb-4">
+                        <h3 class="text-md font-semibold mb-2">Deixe sua avaliação</h3>
+                        <form onsubmit="handleComment(event)">
+                            <div id="star-rating" class="flex items-center space-x-1 mb-2">
+                                <!-- Estrelas de avaliação -->
+                                <span data-star="1" class="text-gray-400 hover:text-yellow-400 cursor-pointer text-2xl" onclick="rate(1)" onmouseover="previewStars(1)" onmouseout="resetStarPreview()">★</span>
+                                <span data-star="2" class="text-gray-400 hover:text-yellow-400 cursor-pointer text-2xl" onclick="rate(2)" onmouseover="previewStars(2)" onmouseout="resetStarPreview()">★</span>
+                                <span data-star="3" class="text-gray-400 hover:text-yellow-400 cursor-pointer text-2xl" onclick="rate(3)" onmouseover="previewStars(3)" onmouseout="resetStarPreview()">★</span>
+                                <span data-star="4" class="text-gray-400 hover:text-yellow-400 cursor-pointer text-2xl" onclick="rate(4)" onmouseover="previewStars(4)" onmouseout="resetStarPreview()">★</span>
+                                <span data-star="5" class="text-gray-400 hover:text-yellow-400 cursor-pointer text-2xl" onclick="rate(5)" onmouseover="previewStars(5)" onmouseout="resetStarPreview()">★</span>
+                            </div>
+                            <textarea id="comment-text" class="w-full p-2 border border-gray-300 rounded-lg" rows="3" placeholder="Escreva seu comentário..."></textarea>
+                            <div class="flex gap-2 mt-2">
+                                <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Enviar Avaliação</button>
+                            </div>
+                        </form>
+                        <p id="comment-login-warning" class="hidden text-sm text-red-500 mt-2">Faça login para avaliar e comentar.</p>
+                    </div>
+
+                    <!-- Lista Completa de Comentários -->
+                    <h2 class="text-lg font-semibold mb-2">Todos os Comentários</h2>
+                    <div id="full-comment-list" class="space-y-3">
+                        <!-- Comentários serão injetados aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela: Eventos Salvos -->
+            <div id="screen-saved" class="screen">
+                <header class="sticky top-0 bg-white shadow z-10 p-4">
+                    <h1 class="text-2xl font-bold text-blue-600">Eventos Salvos</h1>
+                    <p class="text-gray-600">Seus eventos favoritos para não perder</p>
+                </header>
+                <div id="saved-event-list" class="p-4 space-y-4">
+                    <!-- Lista de eventos salvos -->
+                </div>
+            </div>
+
+            <!-- Tela: Conta (Logado) -->
+            <div id="screen-account" class="screen p-6">
+                <h1 class="text-2xl font-bold text-blue-600 mb-6">Minha Conta</h1>
+                
+                <div class="bg-gray-100 p-4 rounded-lg mb-6">
+                    <h2 class="text-lg font-semibold" id="user-name"></h2>
+                    <p class="text-gray-700" id="user-phone"></p>
+                </div>
+
+                <div class="space-y-4">
+                    <button onclick="openChangePasswordModal()" class="w-full text-left p-4 bg-white border border-gray-200 rounded-lg flex justify-between items-center">
+                        <span>Alterar Senha</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
+                    </button>
+                    <button onclick="openChangePhoneModal()" class="w-full text-left p-4 bg-white border border-gray-200 rounded-lg flex justify-between items-center">
+                        <span>Alterar Número de Telefone</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
+                    </button>
+                    <button onclick="handleLogout()" class="w-full bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600 transition-colors mt-6">
+                        Sair
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Navegação Inferior -->
+        <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 flex justify-around p-3 z-20">
+            <button data-nav="home" onclick="showScreen('screen-home')" class="nav-btn active flex flex-col items-center text-blue-600">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-xs">Início</span>
+            </button>
+            <button data-nav="saved" onclick="showScreen('screen-saved')" class="nav-btn flex flex-col items-center text-gray-500">
+                <i data-lucide="bookmark" class="w-6 h-6"></i>
+                <span class="text-xs">Salvos</span>
+            </button>
+            <button data-nav="account" onclick="handleAccountNav()" class="nav-btn flex flex-col items-center text-gray-500">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span id="nav-account-label" class="text-xs">Entrar</span>
+            </button>
+        </nav>
+
+        <!-- Mensagem de Toast/Sucesso -->
+        <div id="toast-message" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 z-50">
+            Avaliação postada com sucesso!
+        </div>
+
+        <!-- Modal de Confirmação (Deletar Comentário) -->
+        <div id="confirm-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-80 p-5">
+                <h3 class="text-lg font-semibold text-gray-900">Confirmação</h3>
+                <p id="confirm-message" class="text-gray-700 mt-2">Tem certeza que deseja apagar este comentário?</p>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button onclick="cancelDelete()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmDelete()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                        Apagar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Notificações -->
+        <div id="notification-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-80 p-5">
+                <h3 class="text-lg font-semibold text-gray-900">Notificações</h3>
+                <p id="notification-message" class="text-gray-700 mt-2">Deseja ativar notificações para esse evento?</p>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button onclick="cancelNotification()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Não
+                    </button>
+                    <button onclick="confirmNotification()" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                        Sim
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmação Remover Evento -->
+        <div id="remove-event-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-80 p-5">
+                <h3 class="text-lg font-semibold text-gray-900">Confirmação</h3>
+                <p id="remove-event-message" class="text-gray-700 mt-2">Tem certeza que deseja remover esse evento?</p>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button onclick="cancelRemoveEvent()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmRemoveEvent()" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                        Remover
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Alterar Senha -->
+        <div id="change-password-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-80 p-5 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Alterar Senha</h3>
+                <form onsubmit="handleChangePassword(event)" class="space-y-4">
+                    <div>
+                        <label for="old-password" class="block text-sm font-medium text-gray-700 mb-1">Senha Antiga</label>
+                        <input type="password" id="old-password" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Digite sua senha atual" required>
+                    </div>
+                    <div>
+                        <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">Nova Senha</label>
+                        <input type="password" id="new-password" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Digite a nova senha" required>
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirmar Nova Senha</label>
+                        <input type="password" id="confirm-password" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Confirme a nova senha" required>
+                    </div>
+                    <p id="password-error" class="text-red-600 text-sm hidden"></p>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                            Alterar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Alterar Telefone -->
+        <div id="change-phone-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg w-80 p-5">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Alterar Número de Telefone</h3>
+                <form onsubmit="handleChangePhone(event)" class="space-y-4">
+                        <div>
+                            <label for="new-phone" class="block text-sm font-medium text-gray-700 mb-1">Novo Número de Telefone</label>
+                            <input type="tel" id="new-phone" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="XX XXXXXXXX ou XX XXXXXXXXX" required>
+                        </div>
+                    <p id="phone-error" class="text-red-600 text-sm hidden"></p>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="closeChangePhoneModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                            Alterar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CHAVE DA API (DEIXE EM BRANCO) ---
+        const apiKey = ""; // Não preencha, será fornecido pelo ambiente.
+
+        // --- DADOS FICTÍCIOS (MOCK DATA) ---
+        const mockEvents = [
+            {
+                id: 1,
+                nome: "Concerto da Orquestra Sinfônica",
+                data: "Sábado, 15 de Nov, 19:00",
+                categorias: ["Música"],
+                cidade: "São Paulo",
+                bairro: "Centro",
+                endereco: "Praça das Artes, Av. São João, 281 - Centro",
+                descricao: "A Orquestra Sinfônica Municipal apresenta clássicos da música brasileira. Um evento imperdível para amantes da música.",
+                acessibilidade: true,
+                organizador: "Prefeitura de São Paulo",
+                prerequisitos: "Nenhum. Evento aberto ao público.",
+                comoChegar: "Metrô Anhangabaú (Linha Vermelha) - 5 min a pé. Ônibus: várias linhas na Av. São João.",
+                imagem: "https://placehold.co/600x400/007bff/ffffff?text=Concerto",
+                comments: [
+                    { id: 101, user: "Ana Silva", rating: 5, text: "Adorei! Muito organizado e a orquestra foi maravilhosa.", isOwn: false },
+                    { id: 102, user: "Bruno Costa", rating: 4, text: "Ótima iniciativa, mas o local estava um pouco cheio.", isOwn: false }
+                ]
+            },
+            {
+                id: 2,
+                nome: "Oficina de Teatro para Crianças",
+                data: "Domingo, 16 de Nov, 10:00",
+                categorias: ["Infantil", "Oficina", "Teatro"],
+                cidade: "Rio de Janeiro",
+                bairro: "Lapa",
+                endereco: "Centro Cultural, Rua da Lapa, 123",
+                descricao: "Uma manhã divertida com jogos teatrais e contação de histórias para crianças de 5 a 10 anos.",
+                acessibilidade: true,
+                organizador: "ONG Arte e Vida",
+                prerequisitos: "Inscrição prévia pelo site (gratuita).",
+                comoChegar: "Próximo aos Arcos da Lapa. Ônibus: diversas linhas.",
+                imagem: "https://placehold.co/600x400/4ade80/ffffff?text=Teatro+Infantil",
+                comments: [
+                    { id: 201, user: "Carla Mendes", rating: 5, text: "Meu filho adorou! As monitoras são ótimas.", isOwn: false }
+                ]
+            },
+            {
+                id: 3,
+                nome: "Peça: Vidas Secas",
+                data: "Sexta, 14 de Nov, 20:00",
+                categorias: ["Teatro"],
+                cidade: "Belo Horizonte",
+                bairro: "Savassi",
+                endereco: "Teatro da Cidade, Rua da Bahia, 1331",
+                descricao: "Adaptação da clássica obra de Graciliano Ramos. Retirada de ingressos 1h antes.",
+                acessibilidade: false,
+                organizador: "Grupo de Teatro Amador",
+                prerequisitos: "Retirada de ingresso 1h antes.",
+                comoChegar: "Várias linhas de ônibus na Av. Afonso Pena.",
+                imagem: "https://placehold.co/600x400/f97316/ffffff?text=Vidas+Secas",
+                comments: []
+            },
+            {
+                id: 4,
+                nome: "Show de Jazz no Parque",
+                data: "Sábado, 15 de Nov, 16:00",
+                categorias: ["Música"],
+                cidade: "São Paulo",
+                bairro: "Ibirapuera",
+                endereco: "Parque Ibirapuera, Portão 3",
+                descricao: "Tarde relaxante com jazz ao vivo no gramado. Traga sua canga!",
+                acessibilidade: true,
+                organizador: "Amigos do Parque",
+                prerequisitos: "Nenhum.",
+                comoChegar: "Ônibus na Av. Pedro Álvares Cabral.",
+                imagem: "https://placehold.co/600x400/6366f1/ffffff?text=Jazz",
+                comments: [
+                    { id: 401, user: "Usuário de Teste", rating: 5, text: "Clima muito agradável, música boa!", isOwn: true }
+                ]
+            }
+        ];
+
+        // --- ESTADO DA APLICAÇÃO ---
+        let state = {
+            loggedIn: false,
+            user: null,
+            userPassword: null, // Senha do usuário (mock - em produção não armazenaria assim)
+            savedEventIds: [], // Eventos salvos do usuário
+            notificationEventIds: [], // Eventos com notificações ativadas
+            currentEventId: null,
+            activeFilters: [], // Array de filtros ativos (múltipla seleção)
+            currentRating: 0, // Novo: Armazena a avaliação da estrela
+            pendingDelete: null, // Armazena { eventId, commentId } quando confirmar exclusão
+            pendingNotification: null, // Armazena eventId quando confirmar ativação/desativação de notificação
+            pendingRemoveEvent: null, // Armazena eventId quando confirmar remoção de evento
+            currentCity: 'Belo Horizonte' // Localização mock para o filtro "Perto de mim"
+        };
+
+        // Mapeamento de cores para cada filtro
+        const filterColors = {
+            'Música': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
+            'Teatro': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300' },
+            'Infantil': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
+            'Oficina': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+            'acessivel': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
+            'nearby': { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' }
+        };
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializa ícones
+            lucide.createIcons();
+            
+            updateFilterButtons();
+            // Define a tela inicial (home)
+            showScreen('screen-home');
+        });
+
+        // --- GERENCIAMENTO DE TELAS E NAVEGAÇÃO ---
+        function showScreen(screenId) {
+            // Esconde todas as telas
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+
+            // Mostra a tela desejada
+            const activeScreen = document.getElementById(screenId);
+            if (activeScreen) {
+                activeScreen.classList.add('active');
+                activeScreen.scrollTop = 0; // Rola para o topo
+            }
+
+            // Sempre mostra a barra de navegação
+            const nav = document.getElementById('bottom-nav');
+            if (nav) {
+                nav.style.display = 'flex';
+            }
+
+            // Atualiza o estado ativo dos botões de navegação
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            let activeBtn = null;
+            if (screenId === 'screen-home') {
+                activeBtn = document.querySelector('.nav-btn[data-nav="home"]');
+            } else if (screenId === 'screen-saved') {
+                activeBtn = document.querySelector('.nav-btn[data-nav="saved"]');
+            } else if (screenId === 'screen-account' || screenId === 'screen-login') {
+                activeBtn = document.querySelector('.nav-btn[data-nav="account"]');
+            }
+            if (activeBtn) {
+                activeBtn.classList.add('text-blue-600');
+                activeBtn.classList.remove('text-gray-500');
+            }
+
+            // Lógica de renderização específica da tela
+            if (screenId === 'screen-home') {
+                updateFilterButtons();
+                renderHome();
+            }
+            if (screenId === 'screen-saved') renderSaved();
+            if (screenId === 'screen-account') renderAccount();
+            if (screenId === 'screen-comments') renderCommentsScreen();
+
+            updateAccountNavLabel();
+        }
+
+        function handleAccountNav() {
+            if (state.loggedIn) {
+                showScreen('screen-account');
+            } else {
+                showScreen('screen-login');
+            }
+        }
+
+        function updateAccountNavLabel() {
+            const label = document.getElementById('nav-account-label');
+            if (!label) return;
+            label.innerText = state.loggedIn ? 'Conta' : 'Entrar';
+        }
+
+        function showDetails(eventId) {
+            const event = mockEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            state.currentEventId = eventId;
+
+            // Popula os dados
+            document.getElementById('detail-image').src = event.imagem;
+            document.getElementById('detail-image').alt = `[Imagem de ${event.nome}]`;
+            document.getElementById('detail-name').innerText = event.nome;
+            document.getElementById('detail-date').innerText = event.data;
+            document.getElementById('detail-description').innerText = event.descricao;
+            document.getElementById('detail-address').innerText = `Endereço: ${event.endereco}, ${event.bairro}, ${event.cidade}`;
+            document.getElementById('detail-transport').innerText = `Como Chegar: ${event.comoChegar}`;
+            document.getElementById('detail-organizer').innerText = `Organizador: ${event.organizador}`;
+            document.getElementById('detail-prereqs').innerText = `Pré-requisitos: ${event.prerequisitos}`;
+
+            // Tags
+            const tagsContainer = document.getElementById('detail-tags');
+            tagsContainer.innerHTML = '';
+            event.categorias.forEach(cat => {
+                tagsContainer.innerHTML += `<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">${cat}</span>`;
+            });
+            if (event.acessibilidade) {
+                tagsContainer.innerHTML += `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium text-center">Acessível</span>`;
+            }
+
+            // Botão Salvar
+            updateSaveButton();
+
+            // Botão de Notificações
+            updateNotificationButton();
+
+            // Simulação de Comentários (PRÉVIA)
+            const reviewsContainer = document.getElementById('detail-reviews');
+            reviewsContainer.innerHTML = '';
+            
+            const previews = event.comments.slice(0, 2); // Pega apenas 2 para prévia
+            if (previews.length > 0) {
+                previews.forEach(comment => {
+                    const ratingStars = '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating);
+                    reviewsContainer.innerHTML += `
+                        <div class="bg-gray-100 p-3 rounded-lg">
+                            <p class="font-semibold">${comment.user} <span class="text-yellow-400">${ratingStars}</span></p>
+                            <p class="text-sm text-gray-700">${comment.text}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                reviewsContainer.innerHTML = '<p class="text-gray-600 text-sm">Nenhum comentário ainda.</p>';
+            }
+            
+            lucide.createIcons(); // Recria ícones se necessário
+            showScreen('screen-details');
+        }
+
+        // --- NOVA FUNÇÃO DE TELA DE COMENTÁRIOS ---
+        function showCommentsScreen() {
+            showScreen('screen-comments');
+        }
+
+        // --- RENDERIZAÇÃO DE CONTEÚDO ---
+        function renderHome() {
+            const list = document.getElementById('event-list');
+            list.innerHTML = ''; // Limpa a lista
+            
+            // Se não há filtros ativos, mostra todos
+            let filteredEvents = mockEvents;
+            if (state.activeFilters.length > 0) {
+                const hasNearby = state.activeFilters.includes('nearby');
+                const otherFilters = state.activeFilters.filter(f => f !== 'nearby');
+
+                filteredEvents = mockEvents.filter(event => {
+                    if (hasNearby && event.cidade !== state.currentCity) {
+                        return false;
+                    }
+
+                    if (otherFilters.length === 0) {
+                        // Apenas filtro de proximidade ativo
+                        return true;
+                    }
+
+                    return otherFilters.some(filter => {
+                        if (filter === 'acessivel') return event.acessibilidade;
+                        return event.categorias.includes(filter);
+                    });
+                });
+            }
+
+            if (filteredEvents.length === 0) {
+                list.innerHTML = '<p class="text-gray-600">Nenhum evento encontrado para estes filtros.</p>';
+                return;
+            }
+
+            filteredEvents.forEach(event => {
+                list.innerHTML += createEventCard(event);
+            });
+            lucide.createIcons();
+        }
+
+        function renderSaved() {
+            const list = document.getElementById('saved-event-list');
+            list.innerHTML = ''; // Limpa a lista
+
+            if (!state.loggedIn) {
+                list.innerHTML = '<p class="text-gray-600 text-center mt-8">Faça login para ver e salvar seus eventos favoritos.</p>';
+                return;
+            }
+            
+            const savedEvents = mockEvents.filter(event => state.savedEventIds.includes(event.id));
+
+            if (savedEvents.length === 0) {
+                list.innerHTML = '<p class="text-gray-600 text-center mt-8">Você ainda não salvou nenhum evento.</p>';
+                return;
+            }
+
+            savedEvents.forEach(event => {
+                // Adiciona botão de remover
+                const cardHTML = createEventCard(event);
+                const cardDiv = document.createElement('div');
+                cardDiv.innerHTML = cardHTML;
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '<i data-lucide="trash-2" class="w-5 h-5"></i> Remover';
+                removeBtn.className = 'mt-2 bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm font-medium';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation(); // Impede que o clique propague para o card
+                    removeSavedEvent(event.id);
+                };
+                cardDiv.querySelector('.p-4').appendChild(removeBtn);
+                list.appendChild(cardDiv);
+            });
+            lucide.createIcons();
+        }
+
+        function renderAccount() {
+            if(state.user) {
+                document.getElementById('user-name').innerText = state.user.name;
+                document.getElementById('user-phone').innerText = state.user.phone;
+            }
+        }
+
+        // --- FUNÇÕES AUXILIARES ---
+        function createEventCard(event) {
+            // Determina quais tags devem ter cores baseado nos filtros ativos
+            const getTagClass = (tag) => {
+                const colors = filterColors[tag];
+                if (colors && state.activeFilters.includes(tag)) {
+                    return `${colors.bg} ${colors.text} ${colors.border} border`;
+                }
+                return 'bg-gray-200 text-gray-700';
+            };
+
+            const categoriaTags = event.categorias.map(cat => {
+                const tagClass = getTagClass(cat);
+                return `<span class="${tagClass} px-2 py-1 rounded-full text-xs">${cat}</span>`;
+            }).join('');
+
+            const acessivelTag = event.acessibilidade 
+                ? `<span class="${getTagClass('acessivel')} px-3 py-1 rounded-full text-xs font-medium text-center">Acessível</span>`
+                : '';
+
+            return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden" onclick="showDetails(${event.id})">
+                    <img src="${event.imagem}" alt="[Imagem de ${event.nome}]" class="w-full h-32 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">${event.nome}</h3>
+                        <p class="text-blue-600 text-sm font-medium mb-2">${event.data}</p>
+                        <p class="text-gray-600 text-sm mb-3">${event.bairro}, ${event.cidade}</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${categoriaTags}
+                            ${acessivelTag}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- HANDLERS DE EVENTOS (Interatividade) ---
+
+        // Login / Registro
+        function toggleRegister() {
+            document.getElementById('login-form').classList.toggle('hidden');
+            document.getElementById('register-form').classList.toggle('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            // Simulação de login
+            state.loggedIn = true;
+            const password = document.getElementById('login-pass').value;
+            const phone = document.getElementById('login-phone').value;
+            state.user = {
+                name: "Usuário de Teste",
+                phone: phone || "11 987654321"
+            };
+            // Salva senha mock (em produção seria hash)
+            state.userPassword = password || "senha123"; // Senha padrão para teste
+            showScreen('screen-home');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const errorElement = document.getElementById('register-error');
+            errorElement.classList.add('hidden');
+
+            const name = document.getElementById('reg-name').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const password = document.getElementById('reg-pass').value;
+            const confirmPassword = document.getElementById('reg-confirm-pass').value;
+
+            // Validações
+            if (!name || !phone || !password || !confirmPassword) {
+                errorElement.innerText = "Todos os campos obrigatórios devem ser preenchidos.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Validação de formato de telefone (aceita apenas números, com ou sem espaços)
+            // Remove todos os caracteres não numéricos para validar
+            const phoneDigits = phone.replace(/\D/g, '');
+            if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+                errorElement.innerText = "Número de telefone inválido. Deve ter 10 ou 11 dígitos.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Validação de senhas
+            if (password !== confirmPassword) {
+                errorElement.innerText = "As senhas não coincidem.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorElement.innerText = "A senha deve ter pelo menos 6 caracteres.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Simulação de registro
+            state.loggedIn = true;
+            state.user = {
+                name: name,
+                phone: phone
+            };
+            // Salva senha mock (em produção seria hash)
+            state.userPassword = password;
+            showScreen('screen-home');
+        }
+
+        function handleLogout() {
+            state.loggedIn = false;
+            state.user = null;
+            state.userPassword = null;
+            state.savedEventIds = []; // Reseta
+            state.notificationEventIds = []; // Reseta notificações
+            showScreen('screen-login');
+        }
+
+        // Alterar Senha e Telefone
+        function openChangePasswordModal() {
+            if (!state.loggedIn) return;
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            document.getElementById('password-error').classList.add('hidden');
+            document.getElementById('change-password-modal').classList.remove('hidden');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('change-password-modal').classList.add('hidden');
+            document.getElementById('password-error').classList.add('hidden');
+        }
+
+        function handleChangePassword(e) {
+            e.preventDefault();
+            const errorElement = document.getElementById('password-error');
+            errorElement.classList.add('hidden');
+
+            const oldPassword = document.getElementById('old-password').value.trim();
+            const newPassword = document.getElementById('new-password').value.trim();
+            const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+            // Validações
+            if (!oldPassword || !newPassword || !confirmPassword) {
+                errorElement.innerText = "Todos os campos devem ser preenchidos.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            if (oldPassword !== state.userPassword) {
+                errorElement.innerText = "A senha antiga está incorreta.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            if (oldPassword === newPassword) {
+                errorElement.innerText = "As senhas nova e antiga são iguais.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                errorElement.innerText = "As senhas não coincidem.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Validação de formato básico (mínimo 6 caracteres)
+            if (newPassword.length < 6) {
+                errorElement.innerText = "A nova senha deve ter pelo menos 6 caracteres.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Sucesso - atualiza senha
+            state.userPassword = newPassword;
+            closeChangePasswordModal();
+            showToast("Senha alterada com sucesso!", "success");
+        }
+
+        function openChangePhoneModal() {
+            if (!state.loggedIn) return;
+            document.getElementById('new-phone').value = '';
+            document.getElementById('phone-error').classList.add('hidden');
+            document.getElementById('change-phone-modal').classList.remove('hidden');
+        }
+
+        function closeChangePhoneModal() {
+            document.getElementById('change-phone-modal').classList.add('hidden');
+            document.getElementById('phone-error').classList.add('hidden');
+        }
+
+        function handleChangePhone(e) {
+            e.preventDefault();
+            const errorElement = document.getElementById('phone-error');
+            errorElement.classList.add('hidden');
+
+            const newPhone = document.getElementById('new-phone').value.trim();
+
+            // Validações
+            if (!newPhone) {
+                errorElement.innerText = "O campo não pode estar vazio.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Validação de formato (aceita apenas números, com ou sem espaços)
+            // Remove todos os caracteres não numéricos para validar
+            const phoneDigits = newPhone.replace(/\D/g, '');
+            if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+                errorElement.innerText = "Número de telefone inválido. Deve ter 10 ou 11 dígitos.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            if (newPhone === state.user.phone) {
+                errorElement.innerText = "O novo número está igual ao antigo.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // Sucesso - atualiza telefone
+            state.user.phone = newPhone;
+            renderAccount(); // Atualiza a exibição
+            closeChangePhoneModal();
+            showToast("Número de telefone alterado com sucesso!", "success");
+        }
+
+        // Filtros (múltipla seleção)
+        function toggleFilter(filter) {
+            const index = state.activeFilters.indexOf(filter);
+            if (index > -1) {
+                // Remove o filtro
+                state.activeFilters.splice(index, 1);
+            } else {
+                // Adiciona o filtro
+                state.activeFilters.push(filter);
+            }
+            updateFilterButtons();
+            renderHome();
+        }
+
+        function updateFilterButtons() {
+            // Atualiza todos os botões de filtro
+            Object.keys(filterColors).forEach(filter => {
+                const btn = document.getElementById(`filter-${filter}`);
+                if (!btn) return;
+                
+                const colors = filterColors[filter];
+                const isActive = state.activeFilters.includes(filter);
+                
+                // Remove todas as classes de cor
+                btn.classList.remove('bg-gray-200', 'text-gray-700');
+                Object.values(filterColors).forEach(c => {
+                    btn.classList.remove(c.bg, c.text, c.border);
+                });
+                
+                // Aplica a cor apropriada
+                if (isActive) {
+                    if (colors.border) btn.classList.add(colors.border);
+                    btn.classList.add(colors.bg, colors.text);
+                } else {
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                }
+            });
+        }
+
+        // Salvar Evento
+        function toggleSaveEvent() {
+            if (!state.currentEventId) return;
+            if (!state.loggedIn) {
+                showToast("Faça login para salvar eventos.", "error");
+                updateSaveButton();
+                return;
+            }
+
+            const eventId = state.currentEventId;
+            const index = state.savedEventIds.indexOf(eventId);
+
+            if (index > -1) {
+                // Remove
+                state.savedEventIds.splice(index, 1);
+                // Se tinha notificações, remove também
+                const notifIndex = state.notificationEventIds.indexOf(eventId);
+                if (notifIndex > -1) {
+                    state.notificationEventIds.splice(notifIndex, 1);
+                }
+            } else {
+                // Adiciona
+                state.savedEventIds.push(eventId);
+                // Mostra popup para ativar notificações
+                showNotificationModal(eventId, true);
+            }
+            updateSaveButton();
+            updateNotificationButton();
+        }
+
+        function removeSavedEvent(eventId) {
+            if (!state.loggedIn) {
+                showToast("Faça login para gerenciar eventos salvos.", "error");
+                return;
+            }
+            // Mostra modal de confirmação
+            state.pendingRemoveEvent = eventId;
+            const event = mockEvents.find(e => e.id === eventId);
+            const eventName = event ? event.nome : 'este evento';
+            document.getElementById('remove-event-message').innerText = `Tem certeza que deseja remover ${eventName}?`;
+            document.getElementById('remove-event-modal').classList.remove('hidden');
+        }
+
+        function cancelRemoveEvent() {
+            state.pendingRemoveEvent = null;
+            document.getElementById('remove-event-modal').classList.add('hidden');
+        }
+
+        function confirmRemoveEvent() {
+            const eventId = state.pendingRemoveEvent;
+            if (!eventId) {
+                document.getElementById('remove-event-modal').classList.add('hidden');
+                return;
+            }
+
+            const index = state.savedEventIds.indexOf(eventId);
+            if (index > -1) {
+                state.savedEventIds.splice(index, 1);
+            }
+            // Remove notificações também
+            const notifIndex = state.notificationEventIds.indexOf(eventId);
+            if (notifIndex > -1) {
+                state.notificationEventIds.splice(notifIndex, 1);
+            }
+
+            state.pendingRemoveEvent = null;
+            document.getElementById('remove-event-modal').classList.add('hidden');
+            
+            // Re-renderiza a lista de salvos (não redireciona)
+            renderSaved();
+            showToast("Evento removido dos salvos.", "success");
+        }
+
+        function updateSaveButton() {
+            const btn = document.getElementById('save-button');
+            if (!btn) return;
+
+            if (!state.loggedIn) {
+                btn.innerHTML = '<i data-lucide="bookmark"></i>';
+                btn.classList.remove('text-blue-600');
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.setAttribute('title', 'Faça login para salvar eventos');
+                lucide.createIcons();
+                return;
+            } else {
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.removeAttribute('title');
+            }
+
+            const isSaved = state.savedEventIds.includes(state.currentEventId);
+            
+            if (isSaved) {
+                btn.innerHTML = '<i data-lucide="bookmark" class="fill-blue-600 text-blue-600"></i>';
+                btn.classList.add('text-blue-600');
+            } else {
+                btn.innerHTML = '<i data-lucide="bookmark"></i>';
+                btn.classList.remove('text-blue-600');
+            }
+            lucide.createIcons();
+        }
+
+        // Notificações
+        function showNotificationModal(eventId, isActivating) {
+            if (!state.loggedIn || !state.savedEventIds.includes(eventId)) {
+                return; // Não deve aparecer se não estiver logado ou evento não salvo
+            }
+            state.pendingNotification = { eventId, isActivating };
+            const message = isActivating 
+                ? "Deseja ativar notificações para esse evento?"
+                : "Deseja desativar notificações para esse evento?";
+            document.getElementById('notification-message').innerText = message;
+            document.getElementById('notification-modal').classList.remove('hidden');
+        }
+
+        function cancelNotification() {
+            state.pendingNotification = null;
+            document.getElementById('notification-modal').classList.add('hidden');
+        }
+
+        function confirmNotification() {
+            const pending = state.pendingNotification;
+            if (!pending) {
+                document.getElementById('notification-modal').classList.add('hidden');
+                return;
+            }
+
+            const { eventId, isActivating } = pending;
+            
+            if (isActivating) {
+                // Ativa notificações
+                if (state.notificationEventIds.indexOf(eventId) === -1) {
+                    state.notificationEventIds.push(eventId);
+                }
+                showToast("Notificações ativadas para este evento.", "success");
+            } else {
+                // Desativa notificações
+                const index = state.notificationEventIds.indexOf(eventId);
+                if (index > -1) {
+                    state.notificationEventIds.splice(index, 1);
+                }
+                showToast("Notificações desativadas para este evento.", "success");
+            }
+
+            state.pendingNotification = null;
+            document.getElementById('notification-modal').classList.add('hidden');
+            updateNotificationButton();
+        }
+
+        function toggleNotification() {
+            if (!state.currentEventId) return;
+            if (!state.loggedIn) {
+                showToast("Faça login para gerenciar notificações.", "error");
+                return;
+            }
+            if (!state.savedEventIds.includes(state.currentEventId)) {
+                showToast("Salve o evento primeiro para ativar notificações.", "error");
+                return;
+            }
+
+            const eventId = state.currentEventId;
+            const isActivating = !state.notificationEventIds.includes(eventId);
+            showNotificationModal(eventId, isActivating);
+        }
+
+        function updateNotificationButton() {
+            const section = document.getElementById('notification-section');
+            const button = document.getElementById('notification-button');
+            const buttonText = document.getElementById('notification-button-text');
+            const icon = button ? button.querySelector('i') : null;
+
+            if (!section || !button || !buttonText) return;
+
+            // Só mostra se usuário estiver logado e evento estiver salvo
+            const shouldShow = state.loggedIn && 
+                             state.currentEventId && 
+                             state.savedEventIds.includes(state.currentEventId);
+
+            if (shouldShow) {
+                section.classList.remove('hidden');
+                const hasNotifications = state.notificationEventIds.includes(state.currentEventId);
+                
+                if (hasNotifications) {
+                    buttonText.innerText = "Desativar Notificações";
+                    button.classList.remove('border-blue-600', 'text-blue-600', 'hover:bg-blue-50');
+                    button.classList.add('border-green-600', 'text-green-600', 'hover:bg-green-50');
+                    if (icon) {
+                        icon.setAttribute('data-lucide', 'bell');
+                        icon.classList.add('text-green-600');
+                    }
+                } else {
+                    buttonText.innerText = "Ativar Notificações";
+                    button.classList.remove('border-green-600', 'text-green-600', 'hover:bg-green-50');
+                    button.classList.add('border-blue-600', 'text-blue-600', 'hover:bg-blue-50');
+                    if (icon) {
+                        icon.setAttribute('data-lucide', 'bell');
+                        icon.classList.remove('text-green-600');
+                        icon.classList.add('text-blue-600');
+                    }
+                }
+                lucide.createIcons();
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        // Comentários (Simulado)
+        function handleComment(e) {
+            e.preventDefault();
+            if (!state.loggedIn) {
+                showToast("Faça login para comentar.", "error");
+                return;
+            }
+            const text = document.getElementById('comment-text');
+            
+            if (state.currentRating === 0) {
+                 showToast("Por favor, selecione uma avaliação (estrelas).", "error");
+                 return;
+            }
+            if (text.value.trim() === '') {
+                 showToast("Por favor, escreva um comentário.", "error");
+                return;
+            }
+
+            // Adiciona novo comentário (simulação)
+            const event = mockEvents.find(e => e.id === state.currentEventId);
+            if (!event) return;
+            
+            const ratingStars = '★'.repeat(state.currentRating) + '☆'.repeat(5 - state.currentRating);
+            
+            const newComment = {
+                id: Date.now(),
+                user: state.user.name,
+                rating: state.currentRating,
+                text: text.value,
+                isOwn: true // Comentário do próprio usuário
+            };
+            
+            event.comments.push(newComment);
+
+            // Limpa o formulário
+            text.value = '';
+            state.currentRating = 0;
+            
+            // Re-renderiza a tela de comentários
+            renderCommentsScreen();
+
+            // Mostra mensagem de sucesso
+            showToast("Avaliação postada com sucesso!", "success");
+        }
+
+        function rate(stars) {
+            if (!state.loggedIn) {
+                showToast("Faça login para avaliar.", "error");
+                return;
+            }
+            // Define a avaliação atual
+            state.currentRating = stars;
+            updateStarDisplay(stars);
+        }
+
+        // --- NOVAS FUNÇÕES (IA e UI) ---
+
+        // Função de Toast (Mensagem de Sucesso/Erro)
+        let toastTimer;
+        function showToast(message, type = 'success') {
+            clearTimeout(toastTimer);
+            const toast = document.getElementById('toast-message');
+            
+            toast.innerText = message;
+            
+            // Remove classes de cor antigas
+            toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600');
+
+            // Adiciona nova classe de cor
+            if (type === 'success') {
+                toast.classList.add('bg-green-600');
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-600');
+            } else if (type === 'loading') {
+                 toast.classList.add('bg-blue-600');
+            }
+
+            toast.classList.remove('hidden');
+            
+            // Esconde automaticamente, exceto se for 'loading'
+            if (type !== 'loading') {
+                toastTimer = setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        function hideToast() {
+            clearTimeout(toastTimer);
+            document.getElementById('toast-message').classList.add('hidden');
+        }
+
+        // Funções de Avaliação (Estrelas Interativas)
+        function updateStarDisplay(rating) {
+            const stars = document.querySelectorAll('#star-rating span'); // Único ID
+            stars.forEach(star => {
+                const starValue = parseInt(star.dataset.star);
+                if (starValue <= rating) {
+                    star.classList.remove('text-gray-400');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-400');
+                }
+            });
+        }
+
+        function previewStars(stars) {
+            updateStarDisplay(stars);
+        }
+
+        function resetStarPreview() {
+            // Reseta para a avaliação clicada (ou 0 se nenhuma)
+            updateStarDisplay(state.currentRating);
+        }
+
+        // --- FUNÇÕES REMOVIDAS (IA) ---
+        // handleAiSuggestion e callGeminiWithRetry foram removidas.
+        
+        // --- NOVAS FUNÇÕES ---
+        function renderCommentsScreen() {
+            const event = mockEvents.find(e => e.id === state.currentEventId);
+            if (!event) return;
+
+            // Define o título da tela
+            document.getElementById('comments-screen-title').innerText = event.nome;
+
+            // Limpa o formulário
+            state.currentRating = 0;
+            updateStarDisplay(0);
+            const commentTextarea = document.getElementById('comment-text');
+            if (commentTextarea) {
+                commentTextarea.value = '';
+            }
+
+            const submitBtn = document.querySelector('#screen-comments form button[type="submit"]');
+            const warning = document.getElementById('comment-login-warning');
+            const starContainer = document.getElementById('star-rating');
+
+            const isLogged = state.loggedIn;
+            if (submitBtn) {
+                submitBtn.disabled = !isLogged;
+                submitBtn.classList.toggle('opacity-50', !isLogged);
+                submitBtn.classList.toggle('cursor-not-allowed', !isLogged);
+            }
+            if (commentTextarea) {
+                commentTextarea.disabled = !isLogged;
+                commentTextarea.classList.toggle('bg-gray-100', !isLogged);
+            }
+            if (warning) {
+                warning.classList.toggle('hidden', isLogged);
+            }
+            if (starContainer) {
+                starContainer.classList.toggle('pointer-events-none', !isLogged);
+                starContainer.classList.toggle('opacity-50', !isLogged);
+            }
+
+            // Renderiza a lista completa
+            const listContainer = document.getElementById('full-comment-list');
+            listContainer.innerHTML = '';
+
+            if (event.comments.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-600 text-center">Nenhum comentário ainda. Seja o primeiro!</p>';
+                return;
+            }
+
+            // Inverte para mostrar os mais novos primeiro (opcional)
+            const sortedComments = event.comments.slice().reverse();
+
+            sortedComments.forEach(comment => {
+                const ratingStars = '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating);
+                
+                // Adiciona botão de apagar se for do próprio usuário
+                const deleteButton = comment.isOwn
+                    ? `<button onclick="showConfirmDelete(${event.id}, ${comment.id})" class="text-red-500 text-xs font-medium hover:underline">Apagar</button>`
+                    : '';
+
+                listContainer.innerHTML += `
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="font-semibold">${comment.user} <span class="text-yellow-400">${ratingStars}</span></p>
+                            ${deleteButton}
+                        </div>
+                        <p class="text-sm text-gray-700">${comment.text}</p>
+                    </div>
+                `;
+            });
+
+            lucide.createIcons();
+        }
+
+        function showConfirmDelete(eventId, commentId) {
+            state.pendingDelete = { eventId, commentId };
+            document.getElementById('confirm-message').innerText = "Tem certeza que deseja apagar este comentário?";
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function cancelDelete() {
+            state.pendingDelete = null;
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        function confirmDelete() {
+            const pending = state.pendingDelete;
+            if (!pending) {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                return;
+            }
+
+            const event = mockEvents.find(e => e.id === pending.eventId);
+            if (!event) {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                state.pendingDelete = null;
+                return;
+            }
+
+            const commentIndex = event.comments.findIndex(c => c.id === pending.commentId);
+            if (commentIndex > -1) {
+                event.comments.splice(commentIndex, 1);
+                renderCommentsScreen();
+                showToast("Comentário removido.", "success");
+            }
+
+            state.pendingDelete = null;
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
